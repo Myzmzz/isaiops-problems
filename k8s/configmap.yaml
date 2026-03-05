@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: problems-config
+  namespace: aiops
+data:
+  DB_SCHEMA: "problems"
+  ANOMALY_BE_URL: "http://isaiops-be.aiops.svc.cluster.local:8000"
+  POLL_INTERVAL_SECONDS: "30"
+  HTTP_TIMEOUT_SECONDS: "10"
+  AGGREGATION_WINDOW_MINUTES: "15"
+  ESCALATION_SCORE_THRESHOLD: "80"
+  LOG_LEVEL: "INFO"
+  CORS_ORIGINS: '["*"]'

@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: isaiops-problems
+  namespace: aiops
+  labels:
+    app: isaiops-problems
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: isaiops-problems
+  template:
+    metadata:
+      labels:
+        app: isaiops-problems
+    spec:
+      imagePullSecrets:
+        - name: harbor-registry
+      initContainers:
+        # 等待 PostgreSQL 就绪
+        - name: wait-for-postgres
+          image: 1.94.151.57:85/aiops/postgres:16-debian
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres.aiops.svc.cluster.local -U root -d isaiops; do
+                echo "等待 PostgreSQL 启动..."
+                sleep 2
+              done
+              echo "PostgreSQL 已就绪"
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: isaiops-secrets
+                  key: db-password
+      containers:
+        - name: isaiops-problems
+          image: 1.94.151.57:85/aiops/isaiops-problems:latest
+          ports:
+            - containerPort: 8001
+          envFrom:
+            - configMapRef:
+                name: problems-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: isaiops-secrets
+                  key: database-url
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8001
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8001
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: isaiops-problems
+  namespace: aiops
+  labels:
+    app: isaiops-problems
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8001
+      targetPort: 8001
+      protocol: TCP
+  selector:
+    app: isaiops-problems
