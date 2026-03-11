@@ -47,6 +47,22 @@ class Problem(SQLModel, table=True):
         sa_column=Column(JSON, nullable=True, default=None)
     )
 
+    # RCA 状态 (not_started | running | completed | failed)
+    rca_status: str = Field(max_length=20, default="not_started")
+    # 根因确认状态 (unknown | suspected | confirmed)
+    root_cause_status: str = Field(max_length=20, default="unknown")
+    # AI 根因分析结果
+    suspected_root_cause: str | None = Field(sa_column=Column(Text, nullable=True))
+    rca_confidence: int | None = Field(default=None)
+    rca_analyzed_at: datetime | None = Field(default=None)
+
+    # 问题来源 (system_generated | manual)
+    source_type: str = Field(max_length=30, default="system_generated")
+    # 聚合原因 (JSON array, e.g. ["同服务", "同时间窗"])
+    aggregation_reasons: list[str] | None = Field(
+        sa_column=Column(JSON, nullable=True, default=None)
+    )
+
     # 时间戳
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

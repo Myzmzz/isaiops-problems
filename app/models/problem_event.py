@@ -37,4 +37,7 @@ class ProblemEvent(SQLModel, table=True):
     event_resolved_at: datetime | None = Field(default=None)
     event_status: str = Field(max_length=20, default="active")
 
+    # 事件与问题的关联标签 (first | derived | parallel | recovered)
+    relation_tag: str = Field(max_length=20, default="parallel")
+
     added_at: datetime = Field(default_factory=datetime.utcnow)

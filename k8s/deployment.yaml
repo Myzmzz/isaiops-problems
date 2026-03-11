@@ -38,7 +38,7 @@ spec:
                   key: db-password
       containers:
         - name: isaiops-problems
-          image: 1.94.151.57:85/aiops/isaiops-problems:latest
+          image: 1.94.151.57:85/observe/isaiops-problems:v3.1
           ports:
             - containerPort: 8001
           envFrom:

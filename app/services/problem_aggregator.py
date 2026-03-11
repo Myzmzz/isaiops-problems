@@ -104,13 +104,17 @@ def _create_problem(session: Session, event: dict) -> Problem:
         status="open",
         event_count=1,
         affected_services=[service],
+        source_type="system_generated",
+        aggregation_reasons=["同服务", "同时间窗"],
+        rca_status="not_started",
+        root_cause_status="unknown",
         created_at=now,
         updated_at=now,
     )
     session.add(problem)
 
-    # 关联事件
-    _link_event(session, problem_id, event)
+    # 关联事件 (首个事件标记为 first)
+    _link_event(session, problem_id, event, relation_tag="first")
 
     # 创建时间线
     timeline = ProblemTimeline(
@@ -150,8 +154,8 @@ def _append_to_problem(session: Session, problem: Problem, event: dict) -> None:
 
     session.add(problem)
 
-    # 关联事件
-    _link_event(session, problem.id, event)
+    # 关联事件 (后续事件标记为 derived)
+    _link_event(session, problem.id, event, relation_tag="derived")
 
     # 记录时间线
     timeline = ProblemTimeline(
@@ -168,7 +172,9 @@ def _append_to_problem(session: Session, problem: Problem, event: dict) -> None:
     )
 
 
-def _link_event(session: Session, problem_id: str, event: dict) -> None:
+def _link_event(
+    session: Session, problem_id: str, event: dict, relation_tag: str = "parallel"
+) -> None:
     """创建 Problem-事件关联记录."""
     detected_at_str = event.get("detected_at", event.get("detectedAt", ""))
     try:
@@ -187,6 +193,7 @@ def _link_event(session: Session, problem_id: str, event: dict) -> None:
         event_threshold=float(event.get("expected_value", event.get("expectedValue", 0))) or None,
         event_detected_at=detected_at,
         event_status=event.get("status", "active"),
+        relation_tag=relation_tag,
         added_at=datetime.utcnow(),
     )
     session.add(pe)
